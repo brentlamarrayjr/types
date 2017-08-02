@@ -4,8 +4,6 @@ import (
 	"reflect"
 )
 
-var r = new(Reflection)
-
 type structure struct {
 	structure interface{}
 }

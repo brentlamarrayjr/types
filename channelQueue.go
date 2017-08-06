@@ -7,9 +7,9 @@ type channelQueue struct {
 }
 
 //ChannelQueue returns pointer to channelQueue struct
-func ChannelQueue(maxCapacity int) *channelQueue {
+func ChannelQueue(capacity int) *channelQueue {
 
-	return &channelQueue{false, maxCapacity, make(chan interface{}, maxCapacity)}
+	return &channelQueue{false, capacity, make(chan interface{}, capacity)}
 }
 
 func (q *channelQueue) Enqueue(i interface{}) error {
@@ -18,7 +18,7 @@ func (q *channelQueue) Enqueue(i interface{}) error {
 		return ErrQueueClosed
 	}
 
-	if q.Size() >= q.MaxCapacity() {
+	if q.Size() >= q.Capacity() {
 		return ErrMaxElements
 	}
 
@@ -59,7 +59,7 @@ func (q *channelQueue) Empty() error {
 		return ErrQueueClosed
 	}
 
-	q.elements = make(chan interface{}, q.MaxCapacity())
+	q.elements = make(chan interface{}, q.Capacity())
 	return nil
 }
 

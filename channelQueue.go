@@ -18,7 +18,7 @@ func (q *channelQueue) Enqueue(i interface{}) error {
 		return ErrQueueClosed
 	}
 
-	if q.Length() >= q.MaxCapacity() {
+	if q.Size() >= q.MaxCapacity() {
 		return ErrMaxElements
 	}
 
@@ -38,7 +38,7 @@ func (q *channelQueue) Peek() (interface{}, error) {
 	return nil, ErrMethodNotSupported
 }
 
-func (q *channelQueue) Length() int {
+func (q *channelQueue) Size() int {
 
 	return len(q.elements)
 }

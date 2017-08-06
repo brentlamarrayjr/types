@@ -50,7 +50,7 @@ func (q *channelQueue) Capacity() int {
 
 func (q *channelQueue) IsEmpty() bool {
 
-	return len(q.elements) > 0
+	return len(q.elements) == 0
 }
 
 func (q *channelQueue) Empty() error {

@@ -43,7 +43,7 @@ func (q *channelQueue) Size() int {
 	return len(q.elements)
 }
 
-func (q *channelQueue) MaxCapacity() int {
+func (q *channelQueue) Capacity() int {
 
 	return q.buffer
 }

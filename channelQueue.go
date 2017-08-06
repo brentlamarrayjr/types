@@ -53,9 +53,14 @@ func (q *channelQueue) IsEmpty() bool {
 	return len(q.elements) > 0
 }
 
-func (q *channelQueue) Empty() {
+func (q *channelQueue) Empty() error {
+
+	if q.closed {
+		return ErrQueueClosed
+	}
 
 	q.elements = make(chan interface{}, q.MaxCapacity())
+	return nil
 }
 
 func (q *channelQueue) Close() error {

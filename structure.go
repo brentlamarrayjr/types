@@ -77,7 +77,7 @@ func (s *structure) Fields() (fields []*field, err error) {
 }
 
 //Map returns a map of fields represented by string/interface{} pairs
-func (s *structure) Map() (map[string]interface{}, error) {
+func (s *structure) Map(lcase bool) (map[string]interface{}, error) {
 
 	m := make(map[string]interface{}, s.FieldCount())
 
@@ -90,7 +90,11 @@ func (s *structure) Map() (map[string]interface{}, error) {
 	for _, field := range fields {
 
 		if v, err := field.Value(); err == nil {
-			m[field.Name()] = v
+			if lcase {
+				m[strings.ToLower(field.Name()[:1])+field.Name()[1:]] = v
+			} else {
+				m[field.Name()] = v
+			}
 			counter++
 		} else {
 			return nil, err

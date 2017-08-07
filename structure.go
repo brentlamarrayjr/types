@@ -111,7 +111,11 @@ func (s *structure) Names(lcase bool) (names []string, err error) {
 
 	for _, field := range fields {
 		if lcase {
-			names = append(names, strings.ToLower(field.Name()[:1])+field.Name()[1:])
+			if field.Name()[:2] == "ID" {
+				names = append(names, "id"+field.Name()[2:])
+			} else {
+				names = append(names, strings.ToLower(field.Name()[:1])+field.Name()[1:])
+			}
 		} else {
 			names = append(names, field.Name())
 		}

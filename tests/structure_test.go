@@ -1,11 +1,12 @@
 package tests
 
 import (
-	types "../../types"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
+
+	"github.com/brentlrayjr/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStructureInstantiation(t *testing.T) {
@@ -64,7 +65,7 @@ func TestStructureMethodFieldByName(t *testing.T) {
 	require.NoErrorf(t, err, "FAIL: field struct could not be instantiated via FieldByName(%s) method of structure", "ID")
 
 	_, err = structure.FieldByName("data")
-	require.Errorf(t, err, "FAIL: field struct could not be instantiated via FieldByName(%s) method of structure", "unexported")
+	require.Errorf(t, err, "FAIL: field struct could not be instantiated via FieldByName(%s) method of structure", "data")
 
 	_, err = structure.FieldByName("Age")
 	require.Errorf(t, err, "FAIL: field struct instantiated via FieldByName(%s) method of structure", "Age")
@@ -83,6 +84,20 @@ func TestStructureMethodFields(t *testing.T) {
 	require.NoError(t, err, "FAIL: *field slice not returned from Fields()")
 	for _, field := range fields {
 		fmt.Printf("(structure) Field: %+v \n", field)
+	}
+}
+
+func TestStructureMethodNames(t *testing.T) {
+
+	e := &Employee{}
+
+	structure, err := types.Structure(e)
+	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e))
+
+	fields, err := structure.Names(false)
+	require.NoError(t, err, "FAIL: *field slice not returned from Names()")
+	for _, field := range fields {
+		fmt.Printf("(structure) Name: %+v \n", field)
 	}
 }
 

@@ -27,10 +27,17 @@ func (q *channelQueue) Enqueue(i interface{}) error {
 }
 
 func (q *channelQueue) Dequeue() (interface{}, error) {
-	if element, success := <-q.elements; success {
-		return element, nil
+
+	if q.IsEmpty() {
+		return nil, ErrNoElements
 	}
-	return nil, ErrNoElements
+
+	element, success := <-q.elements
+	if !success {
+		return nil, ErrQueueClosed
+	}
+
+	return element, nil
 }
 
 func (q *channelQueue) Peek() (interface{}, error) {

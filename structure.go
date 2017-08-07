@@ -2,6 +2,7 @@ package types
 
 import (
 	"reflect"
+	"strings"
 )
 
 type structure struct {
@@ -100,7 +101,7 @@ func (s *structure) Map() (map[string]interface{}, error) {
 }
 
 //Names returns a slice of field name strings
-func (s *structure) Names() (names []string, err error) {
+func (s *structure) Names(lcase bool) (names []string, err error) {
 
 	fields, err := s.Fields()
 
@@ -109,7 +110,11 @@ func (s *structure) Names() (names []string, err error) {
 	}
 
 	for _, field := range fields {
-		names = append(names, field.Name())
+		if lcase {
+			names = append(names, strings.ToLower(field.Name()[:1])+field.Name()[1:])
+		} else {
+			names = append(names, field.Name())
+		}
 	}
 	return names, nil
 }

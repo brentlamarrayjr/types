@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	types "../../types"
+	"github.com/brentlrayjr/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,7 +30,7 @@ func TestFieldMethodName(t *testing.T) {
 	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", 0)
 
 	for i, field := range fields {
-		fmt.Printf("(field) Name(%d): %s \n", i, field.Name())
+		fmt.Printf("(field) Name(%d): %s \n", i, field.Name(false))
 	}
 }
 

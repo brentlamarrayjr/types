@@ -1,9 +1,6 @@
 package types
 
-import (
-	"reflect"
-	"strings"
-)
+import "reflect"
 
 type structure struct {
 	isPtr     bool
@@ -40,6 +37,9 @@ func (s *structure) FieldByIndex(index int) (*field, error) {
 		f := reflect.TypeOf(s.structure).Field(index)
 		if f.PkgPath != "" {
 			return nil, ErrUnexportedField
+		}
+		if f.Anonymous {
+			return nil, ErrAnonymousField
 		}
 
 		return &field{field: f, value: reflect.ValueOf(s.structure).Field(index)}, nil
@@ -107,7 +107,7 @@ func (s *structure) Fields() (fields []*field, err error) {
 		if f, err := s.FieldByIndex(i); err == nil {
 			fields = append(fields, f)
 		} else {
-			if err != ErrUnexportedField {
+			if err != ErrUnexportedField && err != ErrAnonymousField {
 				return nil, err
 			}
 		}
@@ -125,16 +125,8 @@ func (s *structure) Map(lcase bool) (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	counter := 0
 	for _, field := range fields {
-
-		if lcase {
-			m[strings.ToLower(field.Name()[:1])+field.Name()[1:]] = field.Value()
-		} else {
-			m[field.Name()] = field.Value()
-		}
-		counter++
-
+		m[field.Name(lcase)] = field.Value()
 	}
 
 	return m, nil
@@ -151,13 +143,13 @@ func (s *structure) Names(lcase bool) (names []string, err error) {
 
 	for _, field := range fields {
 		if lcase {
-			if field.Name()[:2] == "ID" {
-				names = append(names, "id"+field.Name()[2:])
-			} else {
-				names = append(names, strings.ToLower(field.Name()[:1])+field.Name()[1:])
+			if field.Name(lcase)[:2] == "ID" {
+				names = append(names, "id"+field.Name(lcase)[2:])
+				continue
 			}
+			names = append(names, field.Name(lcase))
 		} else {
-			names = append(names, field.Name())
+			names = append(names, field.Name(lcase))
 		}
 	}
 	return names, nil

@@ -2,6 +2,7 @@ package types
 
 import (
 	"reflect"
+	"strings"
 )
 
 type field struct {
@@ -9,7 +10,11 @@ type field struct {
 	value reflect.Value
 }
 
-func (f *field) Name() string {
+func (f *field) Name(lcase bool) string {
+
+	if lcase {
+		return strings.ToLower(f.field.Name[:1]) + f.field.Name[1:]
+	}
 	return f.field.Name
 }
 

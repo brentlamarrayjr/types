@@ -94,7 +94,7 @@ func TestStructureMethodNames(t *testing.T) {
 	structure, err := types.Structure(e)
 	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e))
 
-	fields, err := structure.Names(false)
+	fields, err := structure.Names(true)
 	require.NoError(t, err, "FAIL: *field slice not returned from Names()")
 	for _, field := range fields {
 		fmt.Printf("(structure) Name: %+v \n", field)
@@ -108,7 +108,7 @@ func TestStructureMethodMap(t *testing.T) {
 	structure, err := types.Structure(e)
 	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e))
 
-	m, err := structure.Map()
+	m, err := structure.Map(false)
 	require.NoErrorf(t, err, "FAIL: map not returned via Map() method of structure. Error: ", err)
 	fmt.Printf("Map: %+v", m)
 

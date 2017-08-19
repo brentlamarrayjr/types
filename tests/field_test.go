@@ -54,12 +54,8 @@ func TestFieldMethodSet(t *testing.T) {
 		require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", i)
 		require.Equalf(t, field.IsExported(), true, "true not returned via IsExported(%s) method of field", i)
 
-		v, err := f.Value()
-
-		require.NoError(f.Value, err, "reflect.Value not returned via Value() method of Reflection")
-
-		err = field.Set(v)
-		require.NoErrorf(t, err, "field struct could not be set via Set(%+v) method of field", v)
+		err = field.Set(f.Value())
+		require.NoErrorf(t, err, "field struct could not be set via Set(%+v) method of field", f.Value())
 
 	}
 

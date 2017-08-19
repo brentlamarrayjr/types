@@ -45,3 +45,6 @@ var ErrUnexportedField = typesErr{Number: 10, Description: "Unexported field."}
 
 //ErrQueueClosed is thrown when a type that implements queue has been closed
 var ErrQueueClosed = typesErr{Number: 11, Description: "Queue is closed."}
+
+//ErrAnonymousField is thrown when a reflect.StructField is anonymous
+var ErrAnonymousField = typesErr{Number: 12, Description: "Field is anonymous."}

@@ -13,6 +13,12 @@ type field struct {
 func (f *field) Name(lcase bool) string {
 
 	if lcase {
+		if f.field.Name[:2] == "ID" {
+			if len(f.field.Name) > 2 {
+				return "id" + f.field.Name[2:]
+			}
+			return "id"
+		}
 		return strings.ToLower(f.field.Name[:1]) + f.field.Name[1:]
 	}
 	return f.field.Name

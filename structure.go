@@ -142,15 +142,7 @@ func (s *structure) Names(lcase bool) (names []string, err error) {
 	}
 
 	for _, field := range fields {
-		if lcase {
-			if field.Name(lcase)[:2] == "ID" {
-				names = append(names, "id"+field.Name(lcase)[2:])
-				continue
-			}
-			names = append(names, field.Name(lcase))
-		} else {
-			names = append(names, field.Name(lcase))
-		}
+		names = append(names, field.Name(lcase))
 	}
 	return names, nil
 }

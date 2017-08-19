@@ -1,11 +1,12 @@
 package tests
 
 import (
-	types "../../types"
 	"fmt"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
+
+	types "../../types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMe(t *testing.T) {
@@ -54,7 +55,8 @@ func TestFieldMethodSet(t *testing.T) {
 		require.Equalf(t, field.IsExported(), true, "true not returned via IsExported(%s) method of field", i)
 
 		v, err := f.Value()
-		require.NoError(t, err, "reflect.Value not returned via Value() method of Reflection")
+
+		require.NoError(f.Value, err, "reflect.Value not returned via Value() method of Reflection")
 
 		err = field.Set(v)
 		require.NoErrorf(t, err, "field struct could not be set via Set(%+v) method of field", v)

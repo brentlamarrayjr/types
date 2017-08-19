@@ -6,6 +6,7 @@ import (
 )
 
 type structure struct {
+	isPtr     bool
 	structure interface{}
 }
 
@@ -15,9 +16,15 @@ type FieldFoundCallback func(*field)
 //Structure returns a structure struct from provided struct
 func Structure(i interface{}) (*structure, error) {
 
-	if reflect.TypeOf(i).Kind() != reflect.Ptr || reflect.TypeOf(i).Elem().Kind() != reflect.Struct {
+	if reflect.TypeOf(i).Kind() == reflect.Ptr {
+		if reflect.TypeOf(i).Elem().Kind() != reflect.Struct {
+			return nil, ErrKindNotSupported
+		}
+		return &structure{isPtr: true, structure: i}, nil
+	} else if reflect.TypeOf(i).Kind() != reflect.Struct {
 		return nil, ErrKindNotSupported
 	}
+
 	return &structure{structure: i}, nil
 }
 
@@ -28,17 +35,39 @@ func (s *structure) FieldByIndex(index int) (*field, error) {
 		return nil, ErrFieldNotFound
 	}
 
+	if !s.isPtr {
+
+		f := reflect.TypeOf(s.structure).Field(index)
+		if f.PkgPath != "" {
+			return nil, ErrUnexportedField
+		}
+
+		return &field{field: f, value: reflect.ValueOf(s.structure).Field(index)}, nil
+	}
+
 	f := reflect.TypeOf(s.structure).Elem().Field(index)
 	if f.PkgPath != "" {
 		return nil, ErrUnexportedField
 	}
 
 	return &field{field: f, value: reflect.ValueOf(s.structure).Elem().Field(index)}, nil
-
 }
 
 //fieldByName returns a pointer to a field struct from provided struct and name
 func (s *structure) FieldByName(name string) (*field, error) {
+
+	if !s.isPtr {
+
+		f, success := reflect.TypeOf(s.structure).FieldByName(name)
+		if !success {
+			return nil, ErrFieldNotFound
+		} else if f.PkgPath != "" {
+			return nil, ErrUnexportedField
+		}
+
+		return &field{field: f, value: reflect.ValueOf(s.structure).FieldByName(name)}, nil
+
+	}
 
 	f, success := reflect.TypeOf(s.structure).Elem().FieldByName(name)
 	if !success {
@@ -53,11 +82,21 @@ func (s *structure) FieldByName(name string) (*field, error) {
 
 //Name returns the name of the structure
 func (s *structure) Name() string {
+
+	if !s.isPtr {
+		return reflect.TypeOf(s.structure).Name()
+	}
+
 	return reflect.TypeOf(s.structure).Elem().Name()
 }
 
 //Name returns the name of the structure
 func (s *structure) FieldCount() int {
+
+	if !s.isPtr {
+		return reflect.TypeOf(s.structure).NumField()
+	}
+
 	return reflect.TypeOf(s.structure).Elem().NumField()
 }
 
@@ -89,16 +128,13 @@ func (s *structure) Map(lcase bool) (map[string]interface{}, error) {
 	counter := 0
 	for _, field := range fields {
 
-		if v, err := field.Value(); err == nil {
-			if lcase {
-				m[strings.ToLower(field.Name()[:1])+field.Name()[1:]] = v
-			} else {
-				m[field.Name()] = v
-			}
-			counter++
+		if lcase {
+			m[strings.ToLower(field.Name()[:1])+field.Name()[1:]] = field.Value()
 		} else {
-			return nil, err
+			m[field.Name()] = field.Value()
 		}
+		counter++
+
 	}
 
 	return m, nil
@@ -138,12 +174,7 @@ func (s *structure) Values() (values []interface{}, err error) {
 
 	for _, field := range fields {
 
-		if v, err := field.Value(); err == nil {
-			values = append(values, v)
-		} else {
-			return nil, err
-		}
-
+		values = append(values, field.Value())
 	}
 	return values, nil
 }

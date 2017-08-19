@@ -13,13 +13,9 @@ func (f *field) Name() string {
 	return f.field.Name
 }
 
-func (f *field) Value() (interface{}, error) {
+func (f *field) Value() interface{} {
 
-	if !f.IsExported() {
-		return nil, ErrUnexportedField
-	}
-
-	return f.value.Interface(), nil
+	return f.value.Interface()
 }
 
 func (f *field) Index() int {
@@ -60,6 +56,5 @@ func (f *field) Set(value interface{}) error {
 
 func (f *field) IsZero() bool {
 
-	v, _ := f.Value()
-	return reflect.DeepEqual(v, reflect.Zero(f.field.Type).Interface())
+	return reflect.DeepEqual(f.Value(), reflect.Zero(f.field.Type).Interface())
 }

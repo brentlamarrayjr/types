@@ -58,8 +58,8 @@ func (f *field) Set(value interface{}) error {
 		return ErrMethodNotSupported
 	}
 
-	if reflect.Zero(reflect.TypeOf(f.value)) != reflect.Zero(reflect.TypeOf(value)) {
-		return ErrValueNotSet
+	if f.value.Type().Kind() != reflect.ValueOf(value).Type().Kind() {
+		return ErrKindNotSupported
 	}
 
 	f.value.Set(reflect.ValueOf(value))

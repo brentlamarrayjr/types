@@ -53,26 +53,23 @@ func TestFieldMethodTag(t *testing.T) {
 func TestFieldMethodSet(t *testing.T) {
 
 	e := &Employee{}
-	m := &Employee{ID: 1, Name: "manager", Manager: true, Salary: 50000, data: nil}
 
 	s, err := types.Structure(e)
 	require.NoErrorf(t, err, "structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e))
 
-	s2, err := types.Structure(m)
-	require.NoErrorf(t, err, "structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(m))
-
 	fields, err := s.Fields()
 	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", 0)
 
-	for i, field := range fields {
+	fields[0].Set(1)
+	require.NoErrorf(t, err, "field struct could not be set via Set(%d) method of field", 1)
 
-		f, err := s2.FieldByIndex(i)
-		require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", i)
-		require.Equalf(t, field.IsExported(), true, "true not returned via IsExported(%s) method of field", i)
+	fields[1].Set("manager")
+	require.NoErrorf(t, err, "field struct could not be set via Set(%s) method of field", "manager")
 
-		err = field.Set(f.Value())
-		require.NoErrorf(t, err, "field struct could not be set via Set(%+v) method of field", f.Value())
+	fields[2].Set(true)
+	require.NoErrorf(t, err, "field struct could not be set via Set(%b) method of field", true)
 
-	}
+	fields[3].Set(50000)
+	require.NoErrorf(t, err, "field struct could not be set via Set(%d) method of field", 50000)
 
 }

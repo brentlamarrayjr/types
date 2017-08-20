@@ -30,8 +30,24 @@ func TestFieldMethodName(t *testing.T) {
 	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", 0)
 
 	for i, field := range fields {
-		fmt.Printf("(field) Name(%d): %s \n", i, field.Name(false))
+		fmt.Printf("(field) Name(%d): %s \n", i, field.Name(true))
 	}
+}
+
+func TestFieldMethodTag(t *testing.T) {
+
+	e := &Employee{}
+
+	s, err := types.Structure(e)
+	require.NoErrorf(t, err, "structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e).Elem().Kind())
+
+	field, err := s.FieldByName("Name")
+	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByName(%s) method of structure", "Name")
+
+	tag, err := field.Tag("test")
+	require.NoErrorf(t, err, "Struct field should have tag", "Name")
+	fmt.Println("TAG: " + tag)
+
 }
 
 func TestFieldMethodSet(t *testing.T) {

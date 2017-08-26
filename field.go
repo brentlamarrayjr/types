@@ -13,7 +13,7 @@ type field struct {
 func (f *field) Name(lcase bool) string {
 
 	if lcase {
-		if len(f.field.Name) >= 2 {
+		if len(f.value.Type().Name()) >= 2 {
 			if f.field.Name[:2] == "ID" {
 				return "id" + f.field.Name[2:]
 			}

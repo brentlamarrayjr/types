@@ -108,7 +108,7 @@ func TestStructureMethodMap(t *testing.T) {
 	structure, err := types.Structure(e)
 	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e))
 
-	m, err := structure.Map(false)
+	m, err := structure.Map(true)
 	require.NoErrorf(t, err, "FAIL: map not returned via Map() method of structure. Error: ", err)
 	fmt.Printf("Map: %+v", m)
 

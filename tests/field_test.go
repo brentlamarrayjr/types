@@ -5,7 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/brentlrayjr/types"
+	"../../types"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,16 +61,20 @@ func TestFieldMethodSet(t *testing.T) {
 	fields, err := s.Fields()
 	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", 0)
 
-	fields[0].Set(1)
+	err = fields[0].Set(1)
 	require.NoErrorf(t, err, "field struct could not be set via Set(%d) method of field", 1)
+	fmt.Printf("Value(%d): %v \n", 0, fields[0].Value())
 
-	fields[1].Set("manager")
+	err = fields[1].Set("manager")
 	require.NoErrorf(t, err, "field struct could not be set via Set(%s) method of field", "manager")
+	fmt.Printf("Value(%d): %v \n", 1, fields[1].Value())
 
-	fields[2].Set(true)
+	err = fields[2].Set(true)
 	require.NoErrorf(t, err, "field struct could not be set via Set(%b) method of field", true)
+	fmt.Printf("Value(%d): %v \n", 2, fields[2].Value())
 
-	fields[3].Set(50000)
-	require.NoErrorf(t, err, "field struct could not be set via Set(%d) method of field", 50000)
+	err = fields[3].Set(50000.00)
+	require.NoErrorf(t, err, "field struct could not be set via Set(%d) method of field", 50000.00)
+	fmt.Printf("Value(%d): %v \n", 3, fields[3].Value())
 
 }

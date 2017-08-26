@@ -1,26 +1,45 @@
 package tests
 
 import (
-	types "../../types"
-	"fmt"
-	"github.com/stretchr/testify/require"
 	"reflect"
 	"testing"
+
+	"github.com/brentlrayjr/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestChannelQueue(t *testing.T) {
 
-	q := types.ChannelQueue(2)
+	capacity := 4
 
-	q.Enqueue
+	q := types.ChannelQueue(capacity)
 
-	s, err := types.Structure(e)
-	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e))
+	require.Equalf(t, q.Size(), 0, "FAIL: element returned (%d) via Size() method does not match expected value (%d)", q.Size(), 0)
+	require.Equalf(t, q.Capacity(), capacity, "FAIL: element returned (%d) via Capacity() method does not match expected value (%d)", q.Capacity(), capacity)
+	require.True(t, q.IsEmpty(), "FAIL: queue should be empty")
 
-	count := s.FieldCount()
-	require.IsTypef(t, 0, count, "FAIL: Did not return (%s) instantiated via FieldCount() method of structure", reflect.TypeOf(e))
-	fmt.Printf("(structure) Count: %d \n", count)
-	fmt.Printf("(structure) Count: %d \n", reflect.TypeOf(e).Elem().NumField())
-	fmt.Printf("(structure) Count: %d \n", reflect.TypeOf(e).Elem().NumField())
+	elements := []interface{}{0, "", 0.5, false}
+
+	for _, element := range elements {
+		err := q.Enqueue(element)
+		require.NoErrorf(t, err, "FAIL: element could not be added to queue via Enqueue(%s) method", reflect.TypeOf(element))
+
+	}
+
+	require.False(t, q.IsEmpty(), "FAIL: queue should not be empty")
+
+	for _, element := range elements {
+
+		e, err := q.Dequeue()
+		require.NoError(t, err, "FAIL: element not returned via Dequeue() method")
+		require.Equalf(t, e, element, "FAIL: element returned (%v) via Dequeue() method does not match expected value (%v)", e, element)
+
+	}
+
+	_, err := q.Dequeue()
+	require.Errorf(t, err, "FAIL: error (%s) not thrown via Dequeue() method when empty", types.ErrNoElements.Error())
+
+	_, err = q.Peek()
+	require.Errorf(t, err, "FAIL: error (%s) not thrown via Peek method when empty", types.ErrMethodNotSupported.Error())
 
 }

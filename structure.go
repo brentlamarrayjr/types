@@ -25,7 +25,12 @@ func Structure(i interface{}) (*structure, error) {
 	return &structure{structure: i}, nil
 }
 
-//fieldByIndex returns a pointet to a field struct from provided struct and index
+//Raw returns the raw struct or struct pointer
+func (s *structure) Raw() interface{} {
+	return s.structure
+}
+
+//fieldByIndex returns a pointer to a field struct from provided struct and index
 func (s *structure) FieldByIndex(index int) (*field, error) {
 
 	if s.FieldCount() <= index || (s.FieldCount() == 0 && index == 0) {

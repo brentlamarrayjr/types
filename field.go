@@ -58,11 +58,38 @@ func (f *field) Set(value interface{}) error {
 		return ErrMethodNotSupported
 	}
 
+	if val := reflect.ValueOf(value); !val.IsValid() {
+		return ErrMethodNotSupported
+	} else if val.Type().Kind() == reflect.Interface && val.IsNil() {
+		f.value.Set(reflect.Zero(reflect.TypeOf(f.Value())))
+		return nil
+	}
+
 	if f.value.Type().Kind() != reflect.ValueOf(value).Type().Kind() {
 		return ErrKindNotSupported
 	}
 
-	f.value.Set(reflect.ValueOf(value))
+	switch value.(type) {
+
+	case int:
+		f.value.SetInt(int64(value.(int)))
+
+	case float64, float32:
+		f.value.SetFloat(value.(float64))
+
+	case string:
+		f.value.SetString(value.(string))
+
+	case bool:
+		f.value.SetBool(value.(bool))
+
+	case nil:
+
+	default:
+		f.value.Set(reflect.ValueOf(value))
+
+	}
+
 	return nil
 }
 

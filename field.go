@@ -17,7 +17,6 @@ func (f *field) Name(lcase bool) string {
 			if f.field.Name[:2] == "ID" {
 				return "id" + f.field.Name[2:]
 			}
-			return "id"
 		}
 		return strings.ToLower(f.field.Name[:1]) + f.field.Name[1:]
 	}

@@ -1,8 +1,9 @@
-package types
+package structs
 
 import (
 	"reflect"
-	"strings"
+
+	"../errors"
 )
 
 type field struct {
@@ -10,16 +11,7 @@ type field struct {
 	value reflect.Value
 }
 
-func (f *field) Name(lcase bool) string {
-
-	if lcase {
-		if len(f.value.Type().Name()) >= 2 {
-			if f.field.Name[:2] == "ID" {
-				return "id" + f.field.Name[2:]
-			}
-		}
-		return strings.ToLower(f.field.Name[:1]) + f.field.Name[1:]
-	}
+func (f *field) Name() string {
 	return f.field.Name
 }
 
@@ -39,7 +31,7 @@ func (f *field) Tag(key string) (string, error) {
 		return value, nil
 
 	}
-	return "", ErrTagNotFound
+	return "", errors.ErrTagNotFound
 }
 
 func (f *field) IsExported() bool {
@@ -50,22 +42,22 @@ func (f *field) IsExported() bool {
 func (f *field) Set(value interface{}) error {
 
 	if !f.IsExported() {
-		return ErrUnexportedField
+		return errors.ErrUnexportedField
 	}
 
 	if !f.value.CanSet() {
-		return ErrMethodNotSupported
+		return errors.ErrMethodNotSupported
 	}
 
 	if val := reflect.ValueOf(value); !val.IsValid() {
-		return ErrMethodNotSupported
+		return errors.ErrMethodNotSupported
 	} else if val.Type().Kind() == reflect.Interface && val.IsNil() {
 		f.value.Set(reflect.Zero(reflect.TypeOf(f.Value())))
 		return nil
 	}
 
 	if f.value.Kind() != reflect.ValueOf(value).Kind() {
-		return ErrKindNotSupported
+		return errors.ErrKindNotSupported
 	}
 
 	switch value.(type) {
@@ -81,8 +73,6 @@ func (f *field) Set(value interface{}) error {
 
 	case bool:
 		f.value.SetBool(value.(bool))
-
-	case nil:
 
 	default:
 		f.value.Set(reflect.ValueOf(value))

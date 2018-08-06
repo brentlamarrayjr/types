@@ -1,6 +1,7 @@
-package types
+package structs
 
 import "reflect"
+import "../errors"
 
 type structure struct {
 	isPtr     bool
@@ -10,16 +11,16 @@ type structure struct {
 //FieldFoundCallback is a function called
 type FieldFoundCallback func(*field)
 
-//Structure returns a structure struct from provided struct
-func Structure(i interface{}) (*structure, error) {
+//Struct returns a structure struct from provided struct
+func Struct(i interface{}) (*structure, error) {
 
 	if reflect.TypeOf(i).Kind() == reflect.Ptr {
 		if reflect.TypeOf(i).Elem().Kind() != reflect.Struct {
-			return nil, ErrKindNotSupported
+			return nil, errors.ErrKindNotSupported
 		}
 		return &structure{isPtr: true, structure: i}, nil
 	} else if reflect.TypeOf(i).Kind() != reflect.Struct {
-		return nil, ErrKindNotSupported
+		return nil, errors.ErrKindNotSupported
 	}
 
 	return &structure{structure: i}, nil
@@ -34,17 +35,17 @@ func (s *structure) Raw() interface{} {
 func (s *structure) FieldByIndex(index int) (*field, error) {
 
 	if s.FieldCount() <= index || (s.FieldCount() == 0 && index == 0) {
-		return nil, ErrFieldNotFound
+		return nil, errors.ErrFieldNotFound
 	}
 
 	if !s.isPtr {
 
 		f := reflect.TypeOf(s.structure).Field(index)
 		if f.PkgPath != "" {
-			return nil, ErrUnexportedField
+			return nil, errors.ErrUnexportedField
 		}
 		if f.Anonymous {
-			return nil, ErrAnonymousField
+			return nil, errors.ErrAnonymousField
 		}
 
 		return &field{field: f, value: reflect.ValueOf(s.structure).Field(index)}, nil
@@ -52,7 +53,7 @@ func (s *structure) FieldByIndex(index int) (*field, error) {
 
 	f := reflect.TypeOf(s.structure).Elem().Field(index)
 	if f.PkgPath != "" {
-		return nil, ErrUnexportedField
+		return nil, errors.ErrUnexportedField
 	}
 
 	return &field{field: f, value: reflect.ValueOf(s.structure).Elem().Field(index)}, nil
@@ -65,9 +66,9 @@ func (s *structure) FieldByName(name string) (*field, error) {
 
 		f, success := reflect.TypeOf(s.structure).FieldByName(name)
 		if !success {
-			return nil, ErrFieldNotFound
+			return nil, errors.ErrFieldNotFound
 		} else if f.PkgPath != "" {
-			return nil, ErrUnexportedField
+			return nil, errors.ErrUnexportedField
 		}
 
 		return &field{field: f, value: reflect.ValueOf(s.structure).FieldByName(name)}, nil
@@ -76,9 +77,9 @@ func (s *structure) FieldByName(name string) (*field, error) {
 
 	f, success := reflect.TypeOf(s.structure).Elem().FieldByName(name)
 	if !success {
-		return nil, ErrFieldNotFound
+		return nil, errors.ErrFieldNotFound
 	} else if f.PkgPath != "" {
-		return nil, ErrUnexportedField
+		return nil, errors.ErrUnexportedField
 	}
 
 	return &field{field: f, value: reflect.ValueOf(s.structure).Elem().FieldByName(name)}, nil
@@ -112,7 +113,7 @@ func (s *structure) Fields() (fields []*field, err error) {
 		if f, err := s.FieldByIndex(i); err == nil {
 			fields = append(fields, f)
 		} else {
-			if err != ErrUnexportedField && err != ErrAnonymousField {
+			if err != errors.ErrUnexportedField && err != errors.ErrAnonymousField {
 				return nil, err
 			}
 		}
@@ -121,7 +122,7 @@ func (s *structure) Fields() (fields []*field, err error) {
 }
 
 //Map returns a map of fields represented by string/interface{} pairs
-func (s *structure) Map(lcase bool) (map[string]interface{}, error) {
+func (s *structure) Map() (map[string]interface{}, error) {
 
 	m := make(map[string]interface{}, s.FieldCount())
 
@@ -131,14 +132,14 @@ func (s *structure) Map(lcase bool) (map[string]interface{}, error) {
 	}
 
 	for _, field := range fields {
-		m[field.Name(lcase)] = field.Value()
+		m[field.Name()] = field.Value()
 	}
 
 	return m, nil
 }
 
 //Names returns a slice of field name strings
-func (s *structure) Names(lcase bool) (names []string, err error) {
+func (s *structure) Names() (names []string, err error) {
 
 	fields, err := s.Fields()
 
@@ -147,7 +148,7 @@ func (s *structure) Names(lcase bool) (names []string, err error) {
 	}
 
 	for _, field := range fields {
-		names = append(names, field.Name(lcase))
+		names = append(names, field.Name())
 	}
 	return names, nil
 }

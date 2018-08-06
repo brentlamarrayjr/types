@@ -1,14 +1,21 @@
-package tests
+package structs
 
 import (
 	"fmt"
 	"reflect"
 	"testing"
 
-	"../../types"
-
 	"github.com/stretchr/testify/require"
 )
+
+//Employee is a representation of an Employee for testing purposes
+type Employee struct {
+	ID      int
+	Name    string `test:"testing"`
+	Manager bool
+	Salary  float64
+	data    interface{}
+}
 
 func TestMe(t *testing.T) {
 
@@ -24,14 +31,14 @@ func TestFieldMethodName(t *testing.T) {
 
 	e := &Employee{}
 
-	s, err := types.Structure(e)
+	s, err := Struct(e)
 	require.NoErrorf(t, err, "structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e).Elem().Kind())
 
 	fields, err := s.Fields()
 	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", 0)
 
 	for i, field := range fields {
-		fmt.Printf("(field) Name(%d): %s \n", i, field.Name(true))
+		fmt.Printf("(field) Name(%d): %s \n", i, field.Name())
 	}
 }
 
@@ -39,7 +46,7 @@ func TestFieldMethodTag(t *testing.T) {
 
 	e := &Employee{}
 
-	s, err := types.Structure(e)
+	s, err := Struct(e)
 	require.NoErrorf(t, err, "structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e).Elem().Kind())
 
 	field, err := s.FieldByName("Name")
@@ -55,7 +62,7 @@ func TestFieldMethodSet(t *testing.T) {
 
 	e := &Employee{}
 
-	s, err := types.Structure(e)
+	s, err := Struct(e)
 	require.NoErrorf(t, err, "structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e))
 
 	fields, err := s.Fields()

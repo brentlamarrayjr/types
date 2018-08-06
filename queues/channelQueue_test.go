@@ -1,18 +1,19 @@
-package tests
+package queues
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/brentlrayjr/types"
 	"github.com/stretchr/testify/require"
+
+	"../errors"
 )
 
 func TestChannelQueue(t *testing.T) {
 
 	capacity := 4
 
-	q := types.ChannelQueue(capacity)
+	q := ChannelQueue(capacity)
 
 	require.Equalf(t, q.Size(), 0, "FAIL: element returned (%d) via Size() method does not match expected value (%d)", q.Size(), 0)
 	require.Equalf(t, q.Capacity(), capacity, "FAIL: element returned (%d) via Capacity() method does not match expected value (%d)", q.Capacity(), capacity)
@@ -37,9 +38,9 @@ func TestChannelQueue(t *testing.T) {
 	}
 
 	_, err := q.Dequeue()
-	require.Errorf(t, err, "FAIL: error (%s) not thrown via Dequeue() method when empty", types.ErrNoElements.Error())
+	require.Errorf(t, err, "FAIL: error (%s) not thrown via Dequeue() method when empty", errors.ErrNoElements)
 
 	_, err = q.Peek()
-	require.Errorf(t, err, "FAIL: error (%s) not thrown via Peek method when empty", types.ErrMethodNotSupported.Error())
+	require.Errorf(t, err, "FAIL: error (%s) not thrown via Peek method when empty", errors.ErrMethodNotSupported)
 
 }

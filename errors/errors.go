@@ -1,17 +1,4 @@
-package types
-
-import (
-	"fmt"
-)
-
-type typesErr struct {
-	Number      int
-	Description string
-}
-
-func (e typesErr) Error() string {
-	return fmt.Sprintf("Types(%d): %s", e.Number, e.Description)
-}
+package errors
 
 //ErrTypeNotSupported is thrown when reflect.Type is not supported by function
 var ErrTypeNotSupported = typesErr{Number: 1, Description: "Type not supported."}

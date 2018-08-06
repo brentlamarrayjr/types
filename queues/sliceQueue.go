@@ -42,31 +42,15 @@ func (q *sliceQueue) EnqueueAsync(i interface{}, callback func(error)) {
 
 	go func() {
 
-		q.lock.Lock()
-
-		if q.closed {
-
-			go callback(errors.ErrQueueClosed)
-			return
-		}
-
-		if q.IsMaxCapacity() {
-			go callback(errors.ErrMaxElements)
-			q.lock.Unlock()
-			return
-		}
-
-		q.elements = append(q.elements, i)
-
-		go callback(nil)
-
-		q.lock.Unlock()
+		callback(q.Enqueue(i))
 
 	}()
 
 }
 
 func (q *sliceQueue) Dequeue() (interface{}, error) {
+
+	q.lock.Lock()
 
 	if q.IsEmpty() {
 		return nil, errors.ErrNoElements
@@ -75,6 +59,8 @@ func (q *sliceQueue) Dequeue() (interface{}, error) {
 	element, elements := q.elements[0], q.elements[1:]
 
 	q.elements = elements
+
+	q.lock.Unlock()
 
 	return element, nil
 }
@@ -89,9 +75,13 @@ func (q *sliceQueue) DequeueAsync(callback func(interface{}, error)) {
 
 func (q *sliceQueue) Peek() (interface{}, error) {
 
+	q.lock.Lock()
+
 	if q.IsEmpty() {
 		return nil, errors.ErrNoElements
 	}
+
+	q.lock.Unlock()
 
 	return q.elements[0], nil
 

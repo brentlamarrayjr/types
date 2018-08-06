@@ -19,7 +19,7 @@ $ go get github.com/brentlrayjr/types
 
 ```go
 
-import "github.com/brentlrayjr/types"
+import "github.com/brentlrayjr/types/structs"
 
 type S struct {
 
@@ -31,10 +31,10 @@ type S struct {
 s := &S{Id: 1, Name: "Brent"}
 
 //Valid. Returns *field, error
-f1, err := types.Structure(s).FieldByName("Brent")
+f1, err := types.Struct(s).FieldByName("Name")
 
 //Also valid. Also returns *field, error
-f2, err := types.Structure(s).FieldByIndex(0)
+f2, err := structs.Struct(s).FieldByIndex(0)
 
 err = f1.Set("B. Ray")
 
@@ -48,4 +48,4 @@ Types is under active development. Alpha, beta, whatever. Most things will remai
 
 |   Contributors                              |
 |---------------------------------------------|
-| [Brent Ray](https://github.com/brentlrayjr) |
+| [Brent Ray](https://github.com/brentlamarrayjr) |

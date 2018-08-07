@@ -3,7 +3,7 @@ package queues
 import (
 	"sync"
 
-	"../errors"
+	"github.com/brentlamarrayjr/types/errors"
 )
 
 type sliceQueue struct {

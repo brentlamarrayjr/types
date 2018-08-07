@@ -1,7 +1,7 @@
 package structs
 
 import "reflect"
-import "../errors"
+import "github.com/brentlamarrayjr/types/errors"
 
 type structure struct {
 	isPtr     bool

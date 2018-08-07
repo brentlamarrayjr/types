@@ -3,7 +3,7 @@ package structs
 import (
 	"reflect"
 
-	"../errors"
+	"github.com/brentlamarrayjr/types/errors"
 )
 
 type field struct {

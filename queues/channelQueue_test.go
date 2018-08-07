@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"../errors"
+	"github.com/brentlamarrayjr/types/errors"
 )
 
 func TestChannelQueue(t *testing.T) {

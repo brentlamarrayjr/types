@@ -44,11 +44,8 @@ func (s *structure) FieldByIndex(index int) (*field, error) {
 		if f.PkgPath != "" {
 			return nil, errors.ErrUnexportedField
 		}
-		if f.Anonymous {
-			return nil, errors.ErrAnonymousField
-		}
 
-		return &field{field: f, value: reflect.ValueOf(s.structure).Field(index)}, nil
+		return &field{field: f, value: reflect.ValueOf(s.structure).Field(index), anonymous: f.Anonymous}, nil
 	}
 
 	f := reflect.TypeOf(s.structure).Elem().Field(index)
@@ -56,7 +53,7 @@ func (s *structure) FieldByIndex(index int) (*field, error) {
 		return nil, errors.ErrUnexportedField
 	}
 
-	return &field{field: f, value: reflect.ValueOf(s.structure).Elem().Field(index)}, nil
+	return &field{field: f, value: reflect.ValueOf(s.structure).Elem().Field(index), anonymous: f.Anonymous}, nil
 }
 
 //fieldByName returns a pointer to a field struct from provided struct and name
@@ -71,7 +68,7 @@ func (s *structure) FieldByName(name string) (*field, error) {
 			return nil, errors.ErrUnexportedField
 		}
 
-		return &field{field: f, value: reflect.ValueOf(s.structure).FieldByName(name)}, nil
+		return &field{field: f, value: reflect.ValueOf(s.structure).FieldByName(name), anonymous: f.Anonymous}, nil
 
 	}
 
@@ -82,7 +79,7 @@ func (s *structure) FieldByName(name string) (*field, error) {
 		return nil, errors.ErrUnexportedField
 	}
 
-	return &field{field: f, value: reflect.ValueOf(s.structure).Elem().FieldByName(name)}, nil
+	return &field{field: f, value: reflect.ValueOf(s.structure).Elem().FieldByName(name), anonymous: f.Anonymous}, nil
 
 }
 
@@ -106,18 +103,61 @@ func (s *structure) FieldCount() int {
 	return reflect.TypeOf(s.structure).Elem().NumField()
 }
 
+func DeepFields(iface interface{}) []*field {
+
+	fields := make([]*field, 0)
+
+	ifv := reflect.ValueOf(iface)
+	ift := reflect.TypeOf(iface)
+
+	if reflect.TypeOf(iface).Kind() == reflect.Ptr {
+
+		ift = reflect.TypeOf(iface).Elem()
+		ifv = reflect.ValueOf(iface).Elem()
+
+	}
+
+	for i := 0; i < ift.NumField(); i++ {
+
+		t := ift.Field(i)
+		v := ifv.Field(i)
+
+		switch v.Kind() {
+		case reflect.Struct:
+			fields = append(fields, DeepFields(v.Interface())...)
+		case reflect.Ptr:
+			if v.Elem().Kind() == reflect.Struct {
+				fields = append(fields, DeepFields(v.Interface())...)
+				continue
+			}
+			fallthrough
+		default:
+			fields = append(fields, &field{t, v, t.Anonymous})
+		}
+	}
+
+	return fields
+}
+
+//fields returns a slice of field structs
+func (s *structure) DeepFields() ([]*field, error) {
+	return DeepFields(s.structure), nil
+}
+
 //fields returns a slice of field structs
 func (s *structure) Fields() (fields []*field, err error) {
 
 	for i := 0; i < s.FieldCount(); i++ {
-		if f, err := s.FieldByIndex(i); err == nil {
-			fields = append(fields, f)
-		} else {
-			if err != errors.ErrUnexportedField && err != errors.ErrAnonymousField {
-				return nil, err
-			}
+
+		f, err := s.FieldByIndex(i)
+		if err != nil {
+			return nil, err
 		}
+
+		fields = append(fields, f)
+
 	}
+
 	return fields, nil
 }
 

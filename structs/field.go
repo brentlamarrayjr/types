@@ -7,8 +7,9 @@ import (
 )
 
 type field struct {
-	field reflect.StructField
-	value reflect.Value
+	field     reflect.StructField
+	value     reflect.Value
+	anonymous bool
 }
 
 func (f *field) Name() string {
@@ -37,6 +38,10 @@ func (f *field) Tag(key string) (string, error) {
 func (f *field) IsExported() bool {
 
 	return f.field.PkgPath == ""
+}
+
+func (f *field) IsAnonymous() bool {
+	return f.field.Anonymous
 }
 
 func (f *field) Set(value interface{}) error {

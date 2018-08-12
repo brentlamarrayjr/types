@@ -25,28 +25,29 @@ func TestStructureInstantiation(t *testing.T) {
 
 func TestStructureMethodFieldCount(t *testing.T) {
 
-	e := &Employee{}
+	m := &Manager{&Employee{0, "", 75000.50, nil}, true}
 
-	s, err := Struct(e)
-	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(e))
+	s, err := Struct(m)
+	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(m))
 
 	count := s.FieldCount()
-	require.IsTypef(t, 0, count, "FAIL: Did not return (%s) instantiated via FieldCount() method of structure", reflect.TypeOf(e))
-	fmt.Printf("(structure) Count: %d \n", count)
-	fmt.Printf("(structure) Count: %d \n", reflect.TypeOf(e).Elem().NumField())
-	fmt.Printf("(structure) Count: %d \n", reflect.TypeOf(e).Elem().NumField())
+	require.IsTypef(t, 0, count, "FAIL: Did not return (%s) instantiated via FieldCount() method of structure", reflect.TypeOf(m))
+	fmt.Printf("(structure) Count\n\tActual: %d\n\tExpected:%d", count, reflect.TypeOf(m).Elem().NumField())
 
 }
 
 func TestStructureMethodFieldByIndex(t *testing.T) {
 
-	e := &Employee{}
+	m := &Manager{&Employee{0, "", 75000.50, nil}, true}
 
-	structure, err := Struct(e)
-	require.NoErrorf(t, err, "structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(e))
+	structure, err := Struct(m)
+	require.NoErrorf(t, err, "structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(m))
 
 	_, err = structure.FieldByIndex(0)
 	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", 0)
+
+	_, err = structure.FieldByIndex(1)
+	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", 1)
 
 	_, err = structure.FieldByIndex(structure.FieldCount() + 1)
 	require.Errorf(t, err, "field struct instantiated via FieldByIndex(%d) method of structure", structure.FieldCount()+1)
@@ -55,10 +56,10 @@ func TestStructureMethodFieldByIndex(t *testing.T) {
 
 func TestStructureMethodFieldByName(t *testing.T) {
 
-	e := &Employee{}
+	m := &Manager{&Employee{0, "", 75000.50, nil}, true}
 
-	structure, err := Struct(e)
-	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(e))
+	structure, err := Struct(m)
+	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(m))
 
 	_, err = structure.FieldByName("ID")
 	require.NoErrorf(t, err, "FAIL: field struct could not be instantiated via FieldByName(%s) method of structure", "ID")
@@ -74,41 +75,59 @@ func TestStructureMethodFieldByName(t *testing.T) {
 //
 func TestStructureMethodFields(t *testing.T) {
 
-	e := &Employee{}
+	m := &Manager{&Employee{231345, "Brent", 75000.50, nil}, true}
 
-	structure, err := Struct(e)
-	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(e))
+	structure, err := Struct(m)
+	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(m))
 
 	fields, err := structure.Fields()
 	require.NoError(t, err, "FAIL: *field slice not returned from Fields()")
 	for _, field := range fields {
 		fmt.Printf("(structure) Field: %+v \n", field)
 	}
+
+	fields, err = structure.DeepFields()
+	require.NoError(t, err, "FAIL: *field slice not returned from DeepFields()")
+	for _, field := range fields {
+		fmt.Printf("(structure) Deep Field: %+v \n", field)
+	}
+
 }
 
 func TestStructureMethodNames(t *testing.T) {
 
-	e := &Employee{}
+	m := &Manager{&Employee{231345, "Brent", 75000.50, nil}, true}
 
-	structure, err := Struct(e)
-	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(e))
+	structure, err := Struct(m)
+	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(m))
 
-	fields, err := structure.Names()
+	names, err := structure.Names()
 	require.NoError(t, err, "FAIL: *field slice not returned from Names()")
-	for _, field := range fields {
-		fmt.Printf("(structure) Name: %+v \n", field)
+	for _, name := range names {
+		fmt.Printf("(structure) Name: %+v \n", name)
 	}
+
+	names, err = structure.DeepNames()
+	require.NoError(t, err, "FAIL: *field slice not returned from DeepNames()")
+	for _, name := range names {
+		fmt.Printf("(structure) Deep Name: %+v \n", name)
+	}
+
 }
 
 func TestStructureMethodMap(t *testing.T) {
 
-	e := &Employee{}
+	m := &Manager{&Employee{231345, "Brent", 75000.50, nil}, true}
 
-	structure, err := Struct(e)
-	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(e))
+	structure, err := Struct(m)
+	require.NoErrorf(t, err, "FAIL: structure struct could not be instantiated via Struct(%s) method", reflect.TypeOf(m))
 
-	m, err := structure.Map()
+	sm, err := structure.Map()
 	require.NoErrorf(t, err, "FAIL: map not returned via Map() method of structure. Error: ", err)
-	fmt.Printf("Map: %+v", m)
+	fmt.Printf("Map: %+v", sm)
+
+	dsm, err := structure.DeepMap()
+	require.NoErrorf(t, err, "FAIL: map not returned via DeepMap() method of structure. Error: ", err)
+	fmt.Printf("\nDeep Map: %+v", dsm)
 
 }

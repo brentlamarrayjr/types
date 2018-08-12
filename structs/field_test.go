@@ -10,17 +10,21 @@ import (
 
 //Employee is a representation of an Employee for testing purposes
 type Employee struct {
-	ID      int
-	Name    string `test:"testing"`
-	Manager bool
-	Salary  float64
-	data    interface{}
+	ID     int
+	Name   string `test:"testing"`
+	Salary float64
+	data   interface{}
+}
+
+type Manager struct {
+	*Employee
+	Override bool
 }
 
 func TestMe(t *testing.T) {
 
 	e := &Employee{}
-	m := &Employee{ID: 1, Name: "manager", Manager: true, Salary: 50000, data: nil}
+	m := &Employee{ID: 1, Name: "manager", Salary: 50000, data: nil}
 	fmt.Printf("Can set: %v \n", reflect.ValueOf(e).Elem().Field(0).CanSet())
 	reflect.ValueOf(e).Elem().Field(0).Set(reflect.ValueOf(m.ID))
 	fmt.Println(e.ID)
@@ -38,7 +42,9 @@ func TestFieldMethodName(t *testing.T) {
 	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", 0)
 
 	for i, field := range fields {
-		fmt.Printf("(field) Name(%d): %s \n", i, field.Name())
+		name, err := field.Name()
+		require.NoErrorf(t, err, "Field at %d does not have a name", 0)
+		fmt.Printf("(field) Name(%d): %s \n", i, name)
 	}
 }
 
@@ -60,28 +66,35 @@ func TestFieldMethodTag(t *testing.T) {
 
 func TestFieldMethodSet(t *testing.T) {
 
-	e := &Employee{}
+	m := &Manager{&Employee{}, true}
 
-	s, err := Struct(e)
-	require.NoErrorf(t, err, "structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(e))
+	s, err := Struct(m)
+	require.NoErrorf(t, err, "structure struct could not be instantiated via Structure(%s) method", reflect.TypeOf(m))
 
 	fields, err := s.Fields()
-	require.NoErrorf(t, err, "field struct could not be instantiated via FieldByIndex(%d) method of structure", 0)
+	require.NoError(t, err, "field struct could not be instantiated via Fields() method of structure")
 
-	err = fields[0].Set(1)
-	require.NoErrorf(t, err, "field struct could not be set via Set(%d) method of field", 1)
-	fmt.Printf("Value(%d): %v \n", 0, fields[0].Value())
+	err = fields[1].Set(false)
+	require.NoErrorf(t, err, "field struct could not be set via Set(%d) method of field", false)
+	fmt.Printf("Value(%t): %t \n", false, fields[1].Value())
+
+	err = fields[0].Set(&Employee{231345, "Brent", 75000.50, nil})
+	require.NoErrorf(t, err, "field struct could not be set via Set(%b) method of field", true)
+	fmt.Printf("Value(%+v): %+v \n", &Employee{231345, "Brent", 75000.50, nil}, fields[0].Value())
+
+	fields, err = s.DeepFields()
+	require.NoError(t, err, "field struct could not be instantiated via DeepFields() method of structure")
+
+	err = fields[0].Set(12345)
+	require.NoErrorf(t, err, "field struct could not be set via Set(%d) method of field", 12345)
+	fmt.Printf("Value(%d): %v \n", 12345, fields[0].Value())
 
 	err = fields[1].Set("manager")
 	require.NoErrorf(t, err, "field struct could not be set via Set(%s) method of field", "manager")
-	fmt.Printf("Value(%d): %v \n", 1, fields[1].Value())
+	fmt.Printf("Value(%s): %v \n", "manager", fields[1].Value())
 
-	err = fields[2].Set(true)
-	require.NoErrorf(t, err, "field struct could not be set via Set(%b) method of field", true)
-	fmt.Printf("Value(%d): %v \n", 2, fields[2].Value())
-
-	err = fields[3].Set(50000.00)
+	err = fields[2].Set(50000.00)
 	require.NoErrorf(t, err, "field struct could not be set via Set(%d) method of field", 50000.00)
-	fmt.Printf("Value(%d): %v \n", 3, fields[3].Value())
+	fmt.Printf("Value(%f): %f \n", 50000.00, fields[2].Value())
 
 }

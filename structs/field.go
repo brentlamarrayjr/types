@@ -12,8 +12,13 @@ type field struct {
 	anonymous bool
 }
 
-func (f *field) Name() string {
-	return f.field.Name
+func (f *field) Name() (string, error) {
+
+	if f.anonymous {
+		return "", errors.ErrAnonymousField
+	}
+
+	return f.field.Name, nil
 }
 
 func (f *field) Value() interface{} {

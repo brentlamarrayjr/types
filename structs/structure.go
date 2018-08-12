@@ -31,76 +31,60 @@ func (s *structure) Raw() interface{} {
 	return s.structure
 }
 
-//fieldByIndex returns a pointer to a field struct from provided struct and index
+//GetType returns the struct type even for a struct pointer
+func (s *structure) GetType() reflect.Type {
+	if s.isPtr {
+		return reflect.TypeOf(s.structure).Elem()
+	}
+	return reflect.TypeOf(s.structure)
+}
+
+//GetValue returns the struct value even for a struct pointer
+func (s *structure) GetValue() reflect.Value {
+	if s.isPtr {
+		return reflect.ValueOf(s.structure).Elem()
+	}
+	return reflect.ValueOf(s.structure)
+}
+
+//FieldByIndex returns a pointer to a field struct from provided struct and index
 func (s *structure) FieldByIndex(index int) (*field, error) {
 
-	if s.FieldCount() <= index || (s.FieldCount() == 0 && index == 0) {
+	if index < 0 || s.FieldCount() == 0 || s.FieldCount() <= index {
 		return nil, errors.ErrFieldNotFound
 	}
 
-	if !s.isPtr {
-
-		f := reflect.TypeOf(s.structure).Field(index)
-		if f.PkgPath != "" {
-			return nil, errors.ErrUnexportedField
-		}
-
-		return &field{field: f, value: reflect.ValueOf(s.structure).Field(index), anonymous: f.Anonymous}, nil
-	}
-
-	f := reflect.TypeOf(s.structure).Elem().Field(index)
+	f := s.GetType().Field(index)
 	if f.PkgPath != "" {
 		return nil, errors.ErrUnexportedField
 	}
 
-	return &field{field: f, value: reflect.ValueOf(s.structure).Elem().Field(index), anonymous: f.Anonymous}, nil
+	return &field{field: f, value: s.GetValue().Field(index), anonymous: f.Anonymous}, nil
 }
 
-//fieldByName returns a pointer to a field struct from provided struct and name
+//FieldByName returns a pointer to a field struct from provided struct and name
 func (s *structure) FieldByName(name string) (*field, error) {
 
-	if !s.isPtr {
-
-		f, success := reflect.TypeOf(s.structure).FieldByName(name)
-		if !success {
-			return nil, errors.ErrFieldNotFound
-		} else if f.PkgPath != "" {
-			return nil, errors.ErrUnexportedField
-		}
-
-		return &field{field: f, value: reflect.ValueOf(s.structure).FieldByName(name), anonymous: f.Anonymous}, nil
-
-	}
-
-	f, success := reflect.TypeOf(s.structure).Elem().FieldByName(name)
+	f, success := s.GetType().FieldByName(name)
 	if !success {
 		return nil, errors.ErrFieldNotFound
 	} else if f.PkgPath != "" {
 		return nil, errors.ErrUnexportedField
 	}
 
-	return &field{field: f, value: reflect.ValueOf(s.structure).Elem().FieldByName(name), anonymous: f.Anonymous}, nil
+	return &field{field: f, value: s.GetValue().FieldByName(name), anonymous: f.Anonymous}, nil
 
 }
 
 //Name returns the name of the structure
 func (s *structure) Name() string {
-
-	if !s.isPtr {
-		return reflect.TypeOf(s.structure).Name()
-	}
-
-	return reflect.TypeOf(s.structure).Elem().Name()
+	return s.GetType().Name()
 }
 
-//Name returns the name of the structure
+//FieldCount returns the count of fields in the supplied struct
+//Unexported fields are skipped.
 func (s *structure) FieldCount() int {
-
-	if !s.isPtr {
-		return reflect.TypeOf(s.structure).NumField()
-	}
-
-	return reflect.TypeOf(s.structure).Elem().NumField()
+	return s.GetType().NumField()
 }
 
 func DeepFields(iface interface{}) []*field {
@@ -124,9 +108,13 @@ func DeepFields(iface interface{}) []*field {
 
 		switch v.Kind() {
 		case reflect.Struct:
-			fields = append(fields, DeepFields(v.Interface())...)
+			if t.Anonymous {
+				fields = append(fields, DeepFields(v.Interface())...)
+				continue
+			}
+			fallthrough
 		case reflect.Ptr:
-			if v.Elem().Kind() == reflect.Struct {
+			if t.Anonymous && v.Elem().Kind() == reflect.Struct {
 				fields = append(fields, DeepFields(v.Interface())...)
 				continue
 			}
@@ -139,12 +127,15 @@ func DeepFields(iface interface{}) []*field {
 	return fields
 }
 
-//fields returns a slice of field structs
+//Fields returns a slice of field structs.
+//Embedded structs are flattened, including struct pointers.
+//Unexported fields are skipped.
 func (s *structure) DeepFields() ([]*field, error) {
 	return DeepFields(s.structure), nil
 }
 
-//fields returns a slice of field structs
+//Fields returns a slice of field structs.
+//Unexported fields are skipped.
 func (s *structure) Fields() (fields []*field, err error) {
 
 	for i := 0; i < s.FieldCount(); i++ {
@@ -161,7 +152,8 @@ func (s *structure) Fields() (fields []*field, err error) {
 	return fields, nil
 }
 
-//Map returns a map of fields represented by string/interface{} pairs
+//Map returns a map of name and value pairs from fields.
+//Unexported and anonymous fields are skipped.
 func (s *structure) Map() (map[string]interface{}, error) {
 
 	m := make(map[string]interface{}, s.FieldCount())
@@ -172,13 +164,52 @@ func (s *structure) Map() (map[string]interface{}, error) {
 	}
 
 	for _, field := range fields {
-		m[field.Name()] = field.Value()
+
+		name, err := field.Name()
+		if err != nil {
+			if err == errors.ErrAnonymousField {
+				continue
+			}
+			return nil, err
+		}
+
+		m[name] = field.Value()
 	}
 
 	return m, nil
 }
 
-//Names returns a slice of field name strings
+//DeepMap returns a map of name and value pairs from fields.
+//Embedded structs are flattened, including struct pointers.
+//Unexported and anonymous fields are skipped.
+func (s *structure) DeepMap() (map[string]interface{}, error) {
+
+	m := make(map[string]interface{}, s.FieldCount())
+
+	fields, err := s.DeepFields()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, field := range fields {
+
+		if !field.IsExported() || field.IsAnonymous() {
+			continue
+		}
+
+		name, err := field.Name()
+		if err != nil {
+			return nil, err
+		}
+
+		m[name] = field.Value()
+	}
+
+	return m, nil
+}
+
+//Names returns a slice of names pull from fields.
+//Unexported and anonymous fields are skipped.
 func (s *structure) Names() (names []string, err error) {
 
 	fields, err := s.Fields()
@@ -188,12 +219,49 @@ func (s *structure) Names() (names []string, err error) {
 	}
 
 	for _, field := range fields {
-		names = append(names, field.Name())
+
+		if !field.IsExported() || field.IsAnonymous() {
+			continue
+		}
+
+		name, err := field.Name()
+		if err != nil {
+			return nil, err
+		}
+
+		names = append(names, name)
 	}
 	return names, nil
 }
 
-//Values returns a slice of interface values from fields
+//DeepNames returns a slice of names pull from fields.
+//Embedded structs are flattened, including struct pointers.
+//Unexported and anonymous fields are skipped.
+func (s *structure) DeepNames() (names []string, err error) {
+
+	fields, err := s.DeepFields()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, field := range fields {
+
+		if !field.IsExported() || field.IsAnonymous() {
+			continue
+		}
+
+		name, err := field.Name()
+		if err != nil {
+			return nil, err
+		}
+
+		names = append(names, name)
+	}
+	return names, nil
+}
+
+//DeepValues returns a slice of values pull from fields.
 func (s *structure) Values() (values []interface{}, err error) {
 
 	fields, err := s.Fields()
@@ -203,6 +271,31 @@ func (s *structure) Values() (values []interface{}, err error) {
 	}
 
 	for _, field := range fields {
+
+		if !field.IsExported() {
+			continue
+		}
+
+		values = append(values, field.Value())
+	}
+	return values, nil
+}
+
+//DeepValues returns a slice of values pull from fields.
+//Embedded structs are flattened, including struct pointers.
+func (s *structure) DeepValues() (values []interface{}, err error) {
+
+	fields, err := s.DeepFields()
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, field := range fields {
+
+		if !field.IsExported() || field.IsAnonymous() {
+			continue
+		}
 
 		values = append(values, field.Value())
 	}
